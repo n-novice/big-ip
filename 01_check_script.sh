@@ -9,8 +9,8 @@ set timeout 5
 set NOW [ exec date "+%Y%m%d%H%M%S" ]
 
 #定義
-#set logfile "./log/LTMStatus.[clock format [clock seconds] -format %Y%m%d%H%M%S]"
-set logfile "/home/pi/script2/log/LTMStatus.$NOW.txt"
+#set logfile "./logs/LTMStatus.[clock format [clock seconds] -format %Y%m%d%H%M%S]"
+set logfile "./logs/LTMStatus.$NOW.txt"
 
 # IPリストをファイルから取得する
 set host_file1 "list.txt"
@@ -25,7 +25,7 @@ log_file $logfile
 while {[gets $fid1 ip] != -1} {
 
     # コマンドをファイルから取得する
-    set host_file2 "/home/pi/script2/command/Command_LTM01_Status_Check.txt"
+    set host_file2 "./command/Command_LTM01_Status_Check.txt"
     if {![file readable $host_file2]} {
         error "cannot read $host_file2"
     }
@@ -81,7 +81,7 @@ log_file
 EOF
 )
 echo "END"
-LOGFILE=`ls -1t ./log/*.txt | head -1`
+LOGFILE=`ls -1t ./logs/*.txt | head -1`
 echo $LOGFILE
 cat $LOGFILE | sed 's/---(less .*)---//' > $LOGFILE.2
 

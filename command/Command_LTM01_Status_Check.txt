@@ -1,9 +1,0 @@
-show sys version
-show sys alert
-show sys hardware
-show sys performance all-stats
-show ltm virtual-address  all-properties
-show ltm virtual  all-properties
-show ltm pool all-properties
-show ltm pool members all-properties
-

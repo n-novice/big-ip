@@ -1,0 +1,5 @@
+modify ltm pool WebSrv_pool001 members modify { Web001:https { session user-disabled state user-down } }
+modify ltm pool WebSrv_pool001 members modify { Web002:https { session user-disabled state user-down } }
+modify ltm pool WebSrv_pool001 members modify { Web003:https { session user-disabled state user-down } }
+modify ltm pool WebSrv_pool001 members modify { Web004:https { session user-disabled state user-down } }
+

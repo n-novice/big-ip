@@ -1,0 +1,2 @@
+tmsh list ltm data-group internal private_net one-line
+tmsh list ltm data-group internal sys_APM_MS_Office_OFBA_DG one-line

@@ -1,128 +1,105 @@
 ;============================================
-; FLAG 0 = ACTIVE   1 = STANDBY
- HOST1_FLAG = 0
- HOST2_FLAG = 0
+; FLAG 0 = ACTIVE   1 = STANDBY  2 = その他(初期値)
+HOST1_FLAG = 2
+HOST2_FLAG = 2
 
 ;============================================
- strdim HOST_NAME 3
- HOST_NAME[0] = ''
- HOST_NAME[1] = 'test-Host1'
- HOST_NAME[2] = 'test-Host2'
+strdim HOST_NAME 3
+HOST_NAME[0] = ''
+HOST_NAME[1] = 'test-Host1'
+HOST_NAME[2] = 'test-Host2'
 
 ;============================================
- strdim HOST_IP 3
- HOST_IP[0] = ''
- HOST_IP[1] = '192.168.1.245'
- HOST_IP[2] = '192.168.1.245'
+strdim HOST_IP 3
+HOST_IP[0] = ''
+HOST_IP[1] = '192.168.1.245'
+HOST_IP[2] = '192.168.1.245'
 
 ;============================================
 ;ログイン名とパスワード
- HOST_USER = 'root'
- HOST_PASS = 'default'
+HOST_USER = 'root'
+HOST_PASS = 'default'
 ;============================================
 
 ;; ログ採取・コマンド用の設定を定義
-;; ログ作成・コマンド読み込み用にカレントディレクトリの情報を取得する
+;; 基本ファイルをマクロファイルのフォルダ変更
 Getdir CurrentDir
 Setdir CurrentDir
 LOGSPATH = CurrentDir
 Strconcat LOGSPATH '\'
+
+;; ログ保存用ディレクトリパスの定義とフォルダ作成
+LOGSDIR = LOGSPATH
+Strconcat LOGSDIR 'logs\'
+foldersearch LOGSDIR
+if result=0 then
+        foldercreate LOGSDIR 
+endif
 
 ; 設定Command用ファイル
 COMMANDPATH = LOGSPATH
 Strconcat COMMANDPATH 'Command\'
 Strconcat COMMANDPATH 'Command_Settings.txt'
 
-
 ;; ログ名に利用する日付情報を取得する
 Getdate Str_Getdate
 Strcopy Str_Getdate 1 4 Str_Year
 Strcopy Str_Getdate 6 2 Str_Mon
 Strcopy Str_Getdate 9 2 Str_Day
- 
+
 ;; ログ名に利用する時刻情報を取得する
 Gettime Str_Gettime
 Strcopy Str_Gettime 1 2 Str_Hour
 Strcopy Str_Gettime 4 2 Str_Min
 Strcopy Str_Gettime 7 2 Str_Sec
 
-;;開始日時時間
-
+;;開始日時の変数定義
 START_DATE = '_'
 Strconcat START_DATE Str_Year
 Strconcat START_DATE Str_Mon
 Strconcat START_DATE Str_Day
+Strconcat START_DATE '_'
 Strconcat START_DATE Str_Hour
 Strconcat START_DATE Str_Min
 Strconcat START_DATE Str_Sec
-Strconcat START_DATE '_bf'
 ;
 
 ; ログ採取用のファイル名定義
 ; ホスト1-1の記録を行う
-FULLPATH11 = LOGSPATH
-Strconcat FULLPATH11 'logs\'
+FULLPATH11 = LOGSDIR
 Strconcat FULLPATH11 HOST_NAME[1]
 Strconcat FULLPATH11 '_'
-Strconcat FULLPATH11 Str_Year
-Strconcat FULLPATH11 Str_Mon
-Strconcat FULLPATH11 Str_Day
-Strconcat FULLPATH11 '_'
-Strconcat FULLPATH11 Str_Hour
-Strconcat FULLPATH11 Str_Min
-Strconcat FULLPATH11 Str_Sec
+Strconcat FULLPATH11 START_DATE
 Strconcat FULLPATH11 '_work'
 Strconcat FULLPATH11 '.log'
 
 ; ホスト1-2のHAステータス記録を行う
-FULLPATH12 = LOGSPATH
-Strconcat FULLPATH12 'logs\'
+FULLPATH12 = LOGSDIR
 Strconcat FULLPATH12 HOST_NAME[1]
 Strconcat FULLPATH12 '_'
-Strconcat FULLPATH12 Str_Year
-Strconcat FULLPATH12 Str_Mon
-Strconcat FULLPATH12 Str_Day
-Strconcat FULLPATH12 '_'
-Strconcat FULLPATH12 Str_Hour
-Strconcat FULLPATH12 Str_Min
-Strconcat FULLPATH12 Str_Sec
+Strconcat FULLPATH12 START_DATE
 Strconcat FULLPATH12 '_ha_bf'
 Strconcat FULLPATH12 '.log'
 
 ; ホスト2-1の記録を行う
-FULLPATH21 = LOGSPATH
-Strconcat FULLPATH21 'logs\'
+FULLPATH21 = LOGSDIR
 Strconcat FULLPATH21 HOST_NAME[2]
 Strconcat FULLPATH21 '_'
-Strconcat FULLPATH21 Str_Year
-Strconcat FULLPATH21 Str_Mon
-Strconcat FULLPATH21 Str_Day
-Strconcat FULLPATH21 '_'
-Strconcat FULLPATH21 Str_Hour
-Strconcat FULLPATH21 Str_Min
-Strconcat FULLPATH21 Str_Sec
+Strconcat FULLPATH21 START_DATE
 Strconcat FULLPATH21 '_work'
 Strconcat FULLPATH21 '.log'
 
 ; ホスト2-2のHAステータス記録を行う
-FULLPATH22 = LOGSPATH
-Strconcat FULLPATH22 'logs\'
+FULLPATH22 = LOGSDIR
 Strconcat FULLPATH22 HOST_NAME[2]
 Strconcat FULLPATH22 '_'
-Strconcat FULLPATH22 Str_Year
-Strconcat FULLPATH22 Str_Mon
-Strconcat FULLPATH22 Str_Day
-Strconcat FULLPATH22 '_'
-Strconcat FULLPATH22 Str_Hour
-Strconcat FULLPATH22 Str_Min
-Strconcat FULLPATH22 Str_Sec
+Strconcat FULLPATH22 START_DATE
 Strconcat FULLPATH22 '_ha_bf'
 Strconcat FULLPATH22 '.log'
 
-
-;===================================================================
-;ホスト１へのログイン
-
+;;##################################################################
+;;## ホスト１へのログイン
+;;##################################################################
 COMMAND1 = HOST_IP[1]
 Strconcat COMMAND1 ':22 /ssh /2 /auth=challenge  /user='
 Strconcat COMMAND1 HOST_USER
@@ -134,7 +111,6 @@ pause 1
 ;自動ログ取得ファイルのクローズ処理
 logclose
 
-
 ;自動ログ取得ファイルのオープン処理
 Logopen FULLPATH12 0 1 1 1
 
@@ -142,45 +118,55 @@ pause 1
 sendln
 sendln
 
-;;#################################
+;;##################################################################
 ;;## 01.HA状態取得
+;;##################################################################
 mpause 100
 sendln
 wait 'root@'
 sendln 'uname -n'
+mpause 200
+
 wait 'root@'
 sendln 'date'
+mpause 200
+
 wait 'root@'
 sendln 'tmsh show cm failover-status'
-
 pause 1
+
 wait 'root@'
 sendln 'tmsh save sys config file ' HOST_NAME[1] START_DATE ' no-passphrase'
+wait '.tar'
+pause 1
+sendln 
 wait 'root@'
-pause 3
+pause 1
+
+wait 'root@'
 sendln 'ls -l /var/local/scf/'
+mpause 200
+
 wait 'root@'
-pause 3
 sendln 'df'
+mpause 200
 
-
-;#################################
-;## 02.ログアウト処理
+;;##################################################################
+;;## 02.ログアウト処理
+;;##################################################################
 pause 1
 sendln 
 wait 'root@'
 sendln 'exit'
-
 
 ;自動ログ取得ファイルのクローズ処理
 logclose
 
 mpause 2000
 
-
-;===================================================================
-;ホスト２へのログイン
-
+;;##################################################################
+;;## ホスト２へのログイン
+;;##################################################################
 COMMAND2 = HOST_IP[2]
 Strconcat COMMAND2 ':22 /ssh /2 /auth=challenge  /user='
 Strconcat COMMAND2 HOST_USER
@@ -199,28 +185,42 @@ pause 2
 sendln
 sendln
 
-;;#################################
+;;##################################################################
 ;;## 01.HA状態取得
+;;##################################################################
 mpause 100
 sendln
 wait 'root@'
 sendln 'uname -n'
+mpause 200
+
 wait 'root@'
 sendln 'date'
+mpause 200
+
 wait 'root@'
 sendln 'tmsh show cm failover-status'
 pause 1
+
 wait 'root@'
 sendln 'tmsh save sys config file ' HOST_NAME[2] START_DATE ' no-passphrase'
+wait '.tar'
+pause 3
+sendln 
 wait 'root@'
 pause 3
-sendln 'ls -l /var/local/scf/'
-wait 'root@'
-pause 3
-sendln 'df'
 
-;#################################
-;## 02.ログアウト処理
+wait 'root@'
+sendln 'ls -l /var/local/scf/'
+mpause 200
+
+wait 'root@'
+sendln 'df'
+mpause 200
+
+;;##################################################################
+;;## 02.ログアウト処理
+;;##################################################################
 pause 2
 sendln 
 wait 'root@'
@@ -232,33 +232,33 @@ logclose
 mpause 2000
 
 
-;#################################
+;;##################################################################
 ;## 03-1.HA状態を確認 host1
-
-;messagebox FULLPATH12 'test'
-
+;;##################################################################
 fileopen filehandle FULLPATH12 0
 
 if filehandle = -1 then
- messagebox 'host1 file open error' 'end'
- end
+  messagebox 'host1 file open error' 'end'
+end
 endif
 
-;:loop_seek
 ;;ファイル  からHA状態の "ACTIVE" を検索
-
 filestrseek filehandle 'ACTIVE' ;検索文字列を入れる
-;messagebox result '結果'
-;;文字列があった場合の分岐
-if result= 1 then
- messagebox 'ACTあるよ!' 'end'
- HOST1_FLAG = 0 ; FLAG = active
+
+;;検索文字列があった場合の分岐
+if result = 1 then
+  messagebox 'HOST1=ACTIVE' 'end'
+  HOST1_FLAG = 0 ; FLAG = active
 endif
 
-;;文字列がない場合の分岐
-if result= 0 then
- messagebox 'ACTないよ！' 'end'
- HOST1_FLAG = 1 ; FLAG = standby
+
+;;ファイル  からHA状態の "STANDBY" を検索
+filestrseek filehandle 'STANDBY' ;検索文字列を入れる
+
+;;検索文字列があった場合の分岐
+if result = 1 then
+  messagebox 'HOST1 = STANDBY' 'end'
+  HOST1_FLAG = 1 ; FLAG = standby
 endif
 
 ;===============================================
@@ -266,540 +266,602 @@ endif
 ;## 03-2.HA状態を確認 host2
 
 ;messagebox FULLPATH22 'test'
-
 fileopen filehandle FULLPATH22 0
 
 if filehandle = -1 then
- messagebox 'host2 file open error' 'end'
- end
+  messagebox 'host2 file open error' 'end'
+end
 endif
 
 ;:loop_seek
 ;;ファイル  からHA状態の "STANDBY" を検索
-
 filestrseek filehandle 'STANDBY' ;検索文字列を入れる
 ;messagebox result '結果'
 ;;文字列があった場合の分岐
 if result= 1 then
- messagebox 'STBYあるよ!ACT=HOST1' 'end'
- HOST2_FLAG = 1 ; FLAG = standby
- if HOST1_FLAG = 0 then
-   fileclose filehandle
-   goto on_act_host1
- endif
+  HOST2_FLAG = 1 ; FLAG = standby
+  if HOST1_FLAG = 0 then
+    messagebox 'HOST2 = STANDBY , HOST1 = ACTIVE' 'end'
+    fileclose filehandle
+    goto on_act_host1
+  endif
 endif
 
-;;文字列がない場合の分岐
-if result= 0 then
- messagebox 'STBYないよ！ACT=HOST2' 'end'
- HOST2_FLAG = 0 ; FLAG = active
- if HOST1_FLAG = 1 then
-   fileclose filehandle
-   goto on_act_host2
- endif
+;;ファイル  からHA状態の "ACTIVE" を検索
+filestrseek filehandle 'ACTIVE' ;検索文字列を入れる
+;messagebox result '結果'
+;;文字列があった場合の分岐
+if result= 1 then
+  HOST2_FLAG = 0 ; FLAG = ACTIVE
+  if HOST1_FLAG = 1 then
+    messagebox 'HOST2 = ACTIVE , HOST1 = STANDBY' 'end'
+    fileclose filehandle
+    goto on_act_host2
+  endif
 endif
 
-messagebox 'HA状態を再度確認してください。終了します' '異常終了'
+;HA状態異常のため終了
+int2str _HOST1_FLAG HOST1_FLAG ; フラグ(数値)を文字列に変換
+int2str _HOST2_FLAG HOST2_FLAG ; フラグ(数値)を文字列に変換
+ErrorMessage = 'HA状態を再確認してください。           \n -- HOST1 = '
+Strconcat ErrorMessage _HOST1_FLAG
+Strconcat ErrorMessage '\n -- HOST2 = '
+Strconcat ErrorMessage _HOST2_FLAG
+strspecial ErrorMessage
+messagebox ErrorMessage '異常終了(0=ACT , 1=STBY , 2=other)'
 end
-
-;===============================================
-
-
+;==============================================================================================
+;==============================================================================================
 ;##################################################################
 ; host２がActiveの場合
 ;##################################################################
 :on_act_host2
-; messagebox 'on_act_host2！' 'end'
 
- ;===================================================================
- ;ホスト２へのログイン
- Connect COMMAND2
- pause 1
+  ;===================================================================
+  ;ホスト２へのログイン
+  Connect COMMAND2
+  pause 1
 
- ;自動ログ取得ファイルのクローズ処理
- logclose
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
 
- ;自動ログ取得ファイルのオープン処理
- Logopen FULLPATH21 0 1 1 1
+  ;自動ログ取得ファイルのオープン処理
+  Logopen FULLPATH21 0 1 1 1
 
- ;-----------------------------------------------------------
- ;コマンドファイルの順次実行
- ;-----------------------------------------------------------
- ;ファイルオープン
- fileopen fh COMMANDPATH 0
+  ;-----------------------------------------------------------
+  ;コマンドファイルの順次実行
+  ;-----------------------------------------------------------
+  ;ファイルオープン
+  fileopen fh COMMANDPATH 0
 
- ;ファイル内の実行行数
- count = 1
+  ;ファイル内の実行行数
+  count = 1
 
- pause 2
- sendln
- sendln
+  pause 2
+  sendln
+  sendln
 
- ;;#################################
- ;;## 10.設定投入
- while 1
-   filereadln fh buf
-   ;読み込めない時はループを抜ける
-   if result goto breakloop
-   
-   ;ファイル内の実行行数表示
-   int2str count_str count ;数値を文字に変換
-   pause 1
-   sendln
-   wait 'root@'
-   sendln '### ' count_str ' 行目を実行します ###'
+  ;;#################################
+  ;;## 10.設定投入
+  while 1
+    filereadln fh buf
+    ;読み込めない時はループを抜ける
+    if result goto breakloop
+    
+    messagebox buf 'Command投入'
+    ;ファイル内の実行行数表示
+    int2str count_str count ;数値を文字に変換
+    mpause 100
+    sendln
+    wait 'root@'
+    sendln '### ' count_str ' 行目を実行します ###'
+    mpause 500
 
-   ;コマンド実行
-   mpause 500
-   sendln buf
-   wait 'root@'
+    ;コマンド実行
+    sendln buf
+    wait 'root@'
+    mpause 500
+    sendln
+    wait 'root@'
 
     count = count + 1
- endwhile
+  endwhile
 
- :breakloop
+　;Command投入完了後のGOTO指定先
+  :breakloop
 
- ;ファイルクローズ
- fileclose fh
+  ;ファイルクローズ
+  fileclose fh
 
- mpause 500
- sendln 
- wait 'root@'
- sendln '# マクロ正常終了
+  mpause 500
+  sendln 
+  wait 'root@'
+  sendln '# マクロ正常終了'
 
- ;#################################
- ;## 11.設定保存
- pause 1
- messagebox '設定保存します' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'tmsh save sys config'
- pause 5
+  ;#################################
+  ;## 11.設定保存
+  ;#################################
+  pause 1
+  messagebox '設定保存します' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'tmsh save sys config'
+  pause 5
+  sendln 
+  wait 'root@'
 
- ;#################################
- ;## 12.設定比較
+  ;#################################
+  ;## 12.設定比較
 
- ;;開始日時時間
- ;; ログ名に利用する日付情報を取得する
- Getdate Str_Getdate
- Strcopy Str_Getdate 1 4 Str_Year2
- Strcopy Str_Getdate 6 2 Str_Mon2
- Strcopy Str_Getdate 9 2 Str_Day2
+  ;;開始日時時間
+  ;; ログ名に利用する日付情報を取得する
+  Getdate Str_Getdate
+  Strcopy Str_Getdate 1 4 Str_Year2
+  Strcopy Str_Getdate 6 2 Str_Mon2
+  Strcopy Str_Getdate 9 2 Str_Day2
   
- ;; ログ名に利用する時刻情報を取得する
- Gettime Str_Gettime
- Strcopy Str_Gettime 1 2 Str_Hour2
- Strcopy Str_Gettime 4 2 Str_Min2
- Strcopy Str_Gettime 7 2 Str_Sec2
+  ;; ログ名に利用する時刻情報を取得する
+  Gettime Str_Gettime
+  Strcopy Str_Gettime 1 2 Str_Hour2
+  Strcopy Str_Gettime 4 2 Str_Min2
+  Strcopy Str_Gettime 7 2 Str_Sec2
 
- END_DATE = '_'
- Strconcat END_DATE Str_Year2
- Strconcat END_DATE Str_Mon2
- Strconcat END_DATE Str_Day2
- Strconcat END_DATE Str_Hour2
- Strconcat END_DATE Str_Min2
- Strconcat END_DATE Str_Sec2
- Strconcat END_DATE '_af'
+  END_DATE = '_'
+  Strconcat END_DATE Str_Year2
+  Strconcat END_DATE Str_Mon2
+  Strconcat END_DATE Str_Day2
+  Strconcat END_DATE '_'
+  Strconcat END_DATE Str_Hour2
+  Strconcat END_DATE Str_Min2
+  Strconcat END_DATE Str_Sec2
 
- pause 1
- sendln 
- sendln 
- wait 'root@'
- sendln 'tmsh save sys config file ' HOST_NAME[2] END_DATE ' no-passphrase'
- wait 'root@'
- pause 3
- sendln 
- sendln 
- wait 'root@'
- sendln 'diff -U 10 /var/local/scf/' HOST_NAME[2] START_DATE ' /var/local/scf/' HOST_NAME[2] END_DATE
- wait 'root@'
- pause 3
+  pause 1
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'tmsh save sys config file ' HOST_NAME[2] END_DATE ' no-passphrase'
+  wait '.tar'
+  pause 1
+  sendln 
+  wait 'root@'
+  pause 1
 
- ;#################################
- ;## 13.コンフィグ同期
- pause 1
- messagebox '設定の同期を行います' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'tmsh run cm config-sync to-group DeviceGroup01'
- pause 5
- sendln 
- 
- ;同期完了でのプロンプト変移を確認
- timeout = 2 
- :more
- sendln
- wait 'Active:In Sync' 
- if result=0 then
-  sendln
-  sendln
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'diff -U 10 /var/local/scf/' HOST_NAME[2] START_DATE ' /var/local/scf/' HOST_NAME[2] END_DATE
+
+  ;less moreが表示されたらspaceを自動投入
+  :more01
+    wait 'less' 'more' 'root@'
+    if result = 1 then
+      send ' '
+      goto more01
+    elseif result = 2 then
+      send ' '
+      goto more01
+    elseif result = 3 then
+      messagebox 'complete' 'end'
+    endif
+  
+  sendln 
+  wait 'root@'
   pause 2
-  goto more
- elseif result=1 then
+
+  ;#################################
+  ;## 13.コンフィグ同期(ACT -> STBY)
+  pause 1
+  messagebox '設定の同期を行います' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'tmsh run cm config-sync to-group DeviceGroup01'
+  pause 5
+  sendln 
+  wait 'root@'
+
+  ;同期完了でのプロンプト変移を確認
+  timeout = 2 
+  :more02
+    sendln
+    wait 'Active:In Sync' 
+    if result=0 then
+      sendln
+      sendln
+      pause 2
+      goto more02
+    elseif result=1 then
+      pause 2
+      sendln
+      messagebox '同期完了' 'end'
+    else
+      sendln
+      sendln
+      pause 2
+      goto more02
+    endif
+
+  timeout = 0
+
+  ;#################################
+  ;## 14.ログアウト処理
+  pause 2
+  messagebox '同期完了を確認してください。OKでログアウトします' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'exit'
+
+  mpause 1000
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
+  mpause 2000
+
+
+  ;#################################
+  ;Standby側でのログ収集
+  ;#################################
+  :on_stby_host1
+  ;===================================================================
+  ;ホスト１へのログイン
+  ;===================================================================
+  Connect COMMAND1
+  pause 1
+
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
+
+  ;自動ログ取得ファイルのオープン処理
+  Logopen FULLPATH11 0 1 1 1
+
   pause 2
   sendln
-  messagebox '同期完了' 'end'
- else
   sendln
-  sendln
+
+  ;#################################
+  ;## 15.HA状態確認（Prompt）
+  ;#################################
+
+  ;状態確認
+  timeout = 2 
+  :more93
+    sendln
+    wait 'Standby:In Sync' 
+    if result=0 then
+      sendln
+      sendln
+      pause 2
+      goto more03
+    elseif result=1 then
+      pause 2
+      sendln
+      messagebox 'HA状態と対象を再度、目視で確認してください。' 'end'
+    else
+      sendln
+      sendln
+      pause 2
+      goto more03
+    endif
+
+  timeout = 0
+
+  ;#################################
+  ;## 16.設定比較
+  pause 1
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'tmsh save sys config file ' HOST_NAME[1] END_DATE ' no-passphrase'
+  wait '.tar'
+  pause 1
+  sendln 
+  wait 'root@'
+  pause 1
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'diff -U 10 /var/local/scf/' HOST_NAME[1] START_DATE ' /var/local/scf/' HOST_NAME[1] END_DATE
+  wait 'root@'
+  pause 3
+
+  ;#################################
+  ;## 17.ログアウト処理
   pause 2
-  goto more
- endif
- 
- timeout = 0
+  messagebox 'OKでログアウトします' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'exit'
 
- ;#################################
- ;## 14.ログアウト処理
- pause 2
- messagebox '同期完了を確認してください。OKでログアウトします' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'exit'
+  mpause 1000
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
+  mpause 2000
 
- mpause 1000
- ;自動ログ取得ファイルのクローズ処理
- logclose
- mpause 2000
+  goto next_step
 
 
- ;#################################
- ;Sttandby側でのログ収集
- ;#################################
-
-:on_stby_host1
-; messagebox 'on_stby_host1！' 'end'
-
- ;===================================================================
- ;ホスト１へのログイン
- Connect COMMAND1
- pause 1
-
- ;自動ログ取得ファイルのクローズ処理
- logclose
-
- ;自動ログ取得ファイルのオープン処理
- Logopen FULLPATH11 0 1 1 1
-
- pause 2
- sendln
- sendln
-
- ;#################################
- ;## 15.HA状態確認（Prompt）
-
- ;状態確認
- timeout = 2 
- :more2
- sendln
- wait 'Standby:In Sync' 
- if result=0 then
-  sendln
-  sendln
-  pause 2
-  goto more2
- elseif result=1 then
-  pause 2
-  sendln
-  messagebox 'HA状態と対象を確認してください。' 'end'
- else
-  sendln
-  sendln
-  pause 2
-  goto more2
- endif
- 
- timeout = 0
-
-
- ;#################################
- ;## 16.設定比較
- pause 1
- sendln 
- sendln 
- wait 'root@'
- sendln 'tmsh save sys config file ' HOST_NAME[1] END_DATE ' no-passphrase'
- wait 'root@'
- pause 3
- sendln 
- sendln 
- wait 'root@'
- sendln 'diff -U 10 /var/local/scf/' HOST_NAME[1] START_DATE ' /var/local/scf/' HOST_NAME[1] END_DATE
- wait 'root@'
- pause 3
-
- ;#################################
- ;## 17.ログアウト処理
- pause 2
- messagebox 'OKでログアウトします' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'exit'
-
- mpause 1000
- ;自動ログ取得ファイルのクローズ処理
- logclose
- mpause 2000
-
-
-
- goto next_step
-
-
-;##################################################################
-;##################################################################
-;##################################################################
-;##################################################################
-;##################################################################
-
+;####################################################################################################################################
+;####################################################################################################################################
+;####################################################################################################################################
+;####################################################################################################################################
+;HOST1がACTIVEの場合の分岐先
 :on_act_host1
- messagebox 'on_act_host1！' 'end'
+  messagebox 'on_act_host1！' 'end'
 
- ;===================================================================
- ;ホスト1へのログイン
- Connect COMMAND1
- pause 1
+  ;===================================================================
+  ;ホスト1へのログイン
+  Connect COMMAND1
+  pause 1
 
- ;自動ログ取得ファイルのクローズ処理
- logclose
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
 
- ;自動ログ取得ファイルのオープン処理
- Logopen FULLPATH11 0 1 1 1
+  ;自動ログ取得ファイルのオープン処理
+  Logopen FULLPATH11 0 1 1 1
 
- ;-----------------------------------------------------------
- ;コマンドファイルの順次実行
- ;-----------------------------------------------------------
- ;ファイルオープン
- fileopen fh COMMANDPATH 0
+  ;-----------------------------------------------------------
+  ;コマンドファイルの順次実行
+  ;-----------------------------------------------------------
+  ;ファイルオープン
+  fileopen fh COMMANDPATH 0
 
- ;ファイル内の実行行数
- count = 1
+  ;ファイル内の実行行数
+  count = 1
 
- pause 2
- sendln
- sendln
+  pause 2
+  sendln
+  sendln
 
- ;;#################################
- ;;## 10.設定投入
- while 1
-   filereadln fh buf
-   ;読み込めない時はループを抜ける
-   if result goto breakloop2
-   
-   ;ファイル内の実行行数表示
-   int2str count_str count ;数値を文字に変換
-   pause 1
-   sendln
-   wait 'root@'
-   sendln '### ' count_str ' 行目を実行します ###'
+  ;;#################################
+  ;;## 10.設定投入
+  while 1
+    filereadln fh buf
+    ;読み込めない時はループを抜ける
+    if result goto breakloop2
+    
+    messagebox buf 'Command投入'
+    ;ファイル内の実行行数表示
+    int2str count_str count ;数値を文字に変換
+    mpause 100
+    sendln
+    wait 'root@'
+    sendln '### ' count_str ' 行目を実行します ###'
+    mpause 500
 
-   ;コマンド実行
-   mpause 500
-   sendln buf
-   wait 'root@'
+    ;コマンド実行
+    sendln buf
+    wait 'root@'
+    mpause 500
+    sendln
+    wait 'root@'
 
     count = count + 1
- endwhile
+  endwhile
 
- :breakloop2
+　;Command投入完了後のGOTO指定先
+  :breakloop2
 
- ;ファイルクローズ
- fileclose fh
+  ;ファイルクローズ
+  fileclose fh
 
- mpause 500
- sendln 
- wait 'root@'
- sendln '# マクロ正常終了
+  mpause 500
+  sendln 
+  wait 'root@'
+  sendln '# マクロ正常終了'
 
- ;#################################
- ;## 11.設定保存
- pause 1
- messagebox '設定保存します' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'tmsh save sys config'
- pause 5
+  ;#################################
+  ;## 11.設定保存
+  pause 1
+  messagebox '設定保存します' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'tmsh save sys config'
+  pause 5
+  sendln 
+  wait 'root@'
 
- ;#################################
- ;## 12.設定比較
+  ;#################################
+  ;## 12.設定比較
 
- ;;開始日時時間
- ;; ログ名に利用する日付情報を取得する
- Getdate Str_Getdate
- Strcopy Str_Getdate 1 4 Str_Year2
- Strcopy Str_Getdate 6 2 Str_Mon2
- Strcopy Str_Getdate 9 2 Str_Day2
+  ;;開始日時時間
+  ;; ログ名に利用する日付情報を取得する
+  Getdate Str_Getdate
+  Strcopy Str_Getdate 1 4 Str_Year2
+  Strcopy Str_Getdate 6 2 Str_Mon2
+  Strcopy Str_Getdate 9 2 Str_Day2
   
- ;; ログ名に利用する時刻情報を取得する
- Gettime Str_Gettime
- Strcopy Str_Gettime 1 2 Str_Hour2
- Strcopy Str_Gettime 4 2 Str_Min2
- Strcopy Str_Gettime 7 2 Str_Sec2
+  ;; ログ名に利用する時刻情報を取得する
+  Gettime Str_Gettime
+  Strcopy Str_Gettime 1 2 Str_Hour2
+  Strcopy Str_Gettime 4 2 Str_Min2
+  Strcopy Str_Gettime 7 2 Str_Sec2
 
- END_DATE = '_'
- Strconcat END_DATE Str_Year2
- Strconcat END_DATE Str_Mon2
- Strconcat END_DATE Str_Day2
- Strconcat END_DATE Str_Hour2
- Strconcat END_DATE Str_Min2
- Strconcat END_DATE Str_Sec2
- Strconcat END_DATE '_af'
+  END_DATE = '_'
+  Strconcat END_DATE Str_Year2
+  Strconcat END_DATE Str_Mon2
+  Strconcat END_DATE Str_Day2
+  Strconcat END_DATE '_'
+  Strconcat END_DATE Str_Hour2
+  Strconcat END_DATE Str_Min2
+  Strconcat END_DATE Str_Sec2
 
- pause 1
- sendln 
- sendln 
- wait 'root@'
- sendln 'tmsh save sys config file ' HOST_NAME[1] END_DATE ' no-passphrase'
- wait 'root@'
- pause 3
- sendln 
- sendln 
- wait 'root@'
- sendln 'diff -U 10 /var/local/scf/' HOST_NAME[1] START_DATE ' /var/local/scf/' HOST_NAME[1] END_DATE
- wait 'root@'
- pause 3
+  pause 1
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'tmsh save sys config file ' HOST_NAME[1] END_DATE ' no-passphrase'
+  wait '.tar'
+  pause 1
+  sendln 
+  wait 'root@'
+  pause 1
 
- ;#################################
- ;## 13.コンフィグ同期
- pause 1
- messagebox '設定の同期を行います' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'tmsh run cm config-sync to-group DeviceGroup01'
- pause 5
- sendln 
- 
- ;同期完了でのプロンプト変移を確認
- timeout = 2 
- :more3
- sendln
- wait 'Active:In Sync' 
- if result=0 then
-  sendln
-  sendln
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'diff -U 10 /var/local/scf/' HOST_NAME[1] START_DATE ' /var/local/scf/' HOST_NAME[1] END_DATE
+
+  ;less moreが表示されたらspaceを自動投入
+  :more11
+    wait 'less' 'more' 'root@'
+    if result = 1 then
+      send ' '
+      goto more11
+    elseif result = 2 then
+      send ' '
+      goto more11
+    elseif result = 3 then
+      messagebox 'complete' 'end'
+    endif
+  
+  sendln 
+  wait 'root@'
   pause 2
-  goto more3
- elseif result=1 then
+
+  ;#################################
+  ;## 13.コンフィグ同期(ACT -> STBY)
+  pause 1
+  messagebox '設定の同期を行います' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'tmsh run cm config-sync to-group DeviceGroup01'
+  pause 5
+  sendln 
+  wait 'root@'
+
+  ;同期完了でのプロンプト変移を確認
+  timeout = 2 
+  :more12
+    sendln
+    wait 'Active:In Sync' 
+    if result=0 then
+      sendln
+      sendln
+      pause 2
+      goto more12
+    elseif result=1 then
+      pause 2
+      sendln
+      messagebox '同期完了' 'end'
+    else
+      sendln
+      sendln
+      pause 2
+      goto more12
+    endif
+
+  timeout = 0
+
+  ;#################################
+  ;## 14.ログアウト処理
+  pause 2
+  messagebox '同期完了を確認してください。OKでログアウトします' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'exit'
+
+  mpause 1000
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
+  mpause 2000
+
+
+  ;#################################
+  ;Sttandby側でのログ収集
+  ;#################################
+  :on_stby_host2
+  ; messagebox 'on_stby_host2！' 'end'
+
+  ;===================================================================
+  ;ホスト2へのログイン
+  Connect COMMAND2
+  pause 1
+
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
+
+  ;自動ログ取得ファイルのオープン処理
+  Logopen FULLPATH21 0 1 1 1
+
   pause 2
   sendln
-  messagebox '同期完了' 'end'
- else
   sendln
+
+  ;#################################
+  ;## 15.HA状態確認（Prompt）
+
+  ;状態確認
+  timeout = 2 
+  :more13
   sendln
+  wait 'Standby:In Sync' 
+  if result=0 then
+    sendln
+    sendln
+    pause 2
+    goto more13
+  elseif result=1 then
+    pause 2
+    sendln
+    messagebox 'HA状態と対象を確認してください。' 'end'
+  else
+    sendln
+    sendln
+    pause 2
+    goto more13
+  endif
+
+  timeout = 0
+
+
+  ;#################################
+  ;## 16.設定比較
+  pause 1
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'tmsh save sys config file ' HOST_NAME[2] END_DATE ' no-passphrase'
+  wait '.tar'
+  pause 1
+  sendln 
+  wait 'root@'
+  pause 1
+  
+  sendln 
+  sendln 
+  wait 'root@'
+  sendln 'diff -U 10 /var/local/scf/' HOST_NAME[2] START_DATE ' /var/local/scf/' HOST_NAME[2] END_DATE
+  wait 'root@'
+  pause 3
+
+  ;#################################
+  ;## 17.ログアウト処理
   pause 2
-  goto more3
- endif
- 
- timeout = 0
+  messagebox 'OKでログアウトします' 'end'
+  sendln 
+  wait 'root@'
+  sendln 
+  wait 'root@'
+  sendln 'exit'
 
- ;#################################
- ;## 14.ログアウト処理
- pause 2
- messagebox '同期完了を確認してください。OKでログアウトします' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'exit'
+  mpause 1000
+  ;自動ログ取得ファイルのクローズ処理
+  logclose
+  mpause 2000
 
- mpause 1000
- ;自動ログ取得ファイルのクローズ処理
- logclose
- mpause 2000
-
-
- ;#################################
- ;Sttandby側でのログ収集
- ;#################################
-
-:on_stby_host2
-; messagebox 'on_stby_host2！' 'end'
-
- ;===================================================================
- ;ホスト2へのログイン
- Connect COMMAND2
- pause 1
-
- ;自動ログ取得ファイルのクローズ処理
- logclose
-
- ;自動ログ取得ファイルのオープン処理
- Logopen FULLPATH21 0 1 1 1
-
- pause 2
- sendln
- sendln
-
- ;#################################
- ;## 15.HA状態確認（Prompt）
-
- ;状態確認
- timeout = 2 
- :more4
- sendln
- wait 'Standby:In Sync' 
- if result=0 then
-  sendln
-  sendln
-  pause 2
-  goto more4
- elseif result=1 then
-  pause 2
-  sendln
-  messagebox 'HA状態と対象を確認してください。' 'end'
- else
-  sendln
-  sendln
-  pause 2
-  goto more4
- endif
- 
- timeout = 0
-
-
- ;#################################
- ;## 16.設定比較
- pause 1
- sendln 
- sendln 
- wait 'root@'
- sendln 'tmsh save sys config file ' HOST_NAME[2] END_DATE ' no-passphrase'
- wait 'root@'
- pause 3
- sendln 
- sendln 
- wait 'root@'
- sendln 'diff -U 10 /var/local/scf/' HOST_NAME[2] START_DATE ' /var/local/scf/' HOST_NAME[2] END_DATE
- wait 'root@'
- pause 3
-
- ;#################################
- ;## 17.ログアウト処理
- pause 2
- messagebox 'OKでログアウトします' 'end'
- sendln 
- wait 'root@'
- sendln 
- wait 'root@'
- sendln 'exit'
-
- mpause 1000
- ;自動ログ取得ファイルのクローズ処理
- logclose
- mpause 2000
-
- goto next_step
+  goto next_step
 
 
 :next_step
@@ -816,7 +878,7 @@ Getdate Str_Getdate
 Strcopy Str_Getdate 1 4 Str_Year3
 Strcopy Str_Getdate 6 2 Str_Mon3
 Strcopy Str_Getdate 9 2 Str_Day3
- 
+
 ;; ログ名に利用する時刻情報を取得する
 Gettime Str_Gettime
 Strcopy Str_Gettime 1 2 Str_Hour3
@@ -835,15 +897,13 @@ Strconcat END2_DATE Str_Sec3
 ;
 
 ; ログ採取用のファイル名定義
-FULLPATH13 = LOGSPATH
-Strconcat FULLPATH13 'logs\'
+FULLPATH13 = LOGSDIR
 Strconcat FULLPATH13 HOST_NAME[1]
 Strconcat FULLPATH13 END2_DATE
 Strconcat FULLPATH13 '_af.log'
 
 ; ホスト2-2のHAステータス記録を行う
-FULLPATH23 = LOGSPATH
-Strconcat FULLPATH23 'logs\'
+FULLPATH23 = LOGSDIR
 Strconcat FULLPATH23 HOST_NAME[2]
 Strconcat FULLPATH23 END2_DATE
 Strconcat FULLPATH23 '_af.log'
@@ -882,6 +942,9 @@ sendln 'tmsh show cm failover-status'
 pause 1
 wait 'root@'
 sendln 'tmsh save sys ucs ' HOST_NAME[1] END2_DATE '.ucs'
+wait ' is saved.'
+pause 1
+sendln
 wait 'root@'
 pause 3
 sendln 'ls -l /var/local/ucs/'
@@ -937,6 +1000,9 @@ sendln 'tmsh show cm failover-status'
 pause 1
 wait 'root@'
 sendln 'tmsh save sys ucs ' HOST_NAME[2] END2_DATE '.ucs'
+wait ' is saved.'
+pause 1
+sendln
 wait 'root@'
 pause 3
 sendln 'ls -l /var/local/ucs/'

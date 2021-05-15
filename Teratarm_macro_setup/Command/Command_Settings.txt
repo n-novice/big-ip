@@ -1,2 +1,33 @@
+# コメント1 AAAAA:事前確認
 tmsh list ltm data-group internal private_net one-line
+
+
+
+
+
+
+#コメント2 XXXXX:確認用コマンド
 tmsh list ltm data-group internal sys_APM_MS_Office_OFBA_DG one-line
+
+
+
+
+
+#コメント3 YYYYY:設定用コマンド
+
+
+
+
+
+
+#コメント4 XXXXX:確認用コマンド
+tmsh list ltm data-group internal sys_APM_MS_Office_OFBA_DG one-line
+
+
+
+
+
+
+
+
+#END

@@ -348,6 +348,14 @@ end
     ;読み込めない時はループを抜ける
     if result goto breakloop
     
+     ; 空白行を無視する
+     Strlen buf
+     If result = 0 continue
+
+     ;「#」から始まる行をコメントとして無視
+     Strmatch buf '^#' 
+     If result <> 0 continue
+    
     messagebox buf 'Command投入'
     ;ファイル内の実行行数表示
     int2str count_str count ;数値を文字に変換
@@ -625,6 +633,14 @@ end
     ;読み込めない時はループを抜ける
     if result goto breakloop2
     
+     ; 空白行を無視する
+     Strlen buf
+     If result = 0 continue
+
+     ;「#」から始まる行をコメントとして無視
+     Strmatch buf '^#' 
+     If result <> 0 continue
+
     messagebox buf 'Command投入'
     ;ファイル内の実行行数表示
     int2str count_str count ;数値を文字に変換

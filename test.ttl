@@ -1,0 +1,129 @@
+;==============================================
+; Teraterm Macro Sample Script for Linux SSH Login with Encrypted Passwords
+; ・ユーザ unyou00 / パスワード "Password00" でログイン
+; ・ログイン後、su - で管理者 (パスワード "rootpass") に昇格
+; ・セッションログを実行日時付きファイルに保存
+; ・パスワードは簡易XOR暗号 (キー: 23) により保護
+;==============================================
+
+;==============================================
+; 【共通】 暗号化・復号ルーチン（XOR 暗号の例）
+;==============================================
+; 使用する暗号キー
+key = 23
+
+; サブルーチン: decrypt
+; グローバル変数 obf_str に暗号化文字列を設定し、復号結果を dec_str に格納する
+decrypt:
+    dec_str = ""
+    len = strlen(obf_str)
+    for i = 1 to len
+        c = asc(obf_str, i)
+        dec_c = c xor key
+        dec_str = dec_str + chr(dec_c)
+    next
+    return
+
+;==============================================
+; 【方法1】 マクロ内に直接暗号化文字列を埋め込む例
+;==============================================
+; 事前に以下のように暗号化しておきます。
+;
+; [ユーザパスワード "Password00"]
+; 各文字の ASCII コードに対して XOR 23 を実施した結果:
+;   'P' (80)  → 80 xor 23 = 71  → "G"
+;   'a' (97)  → 97 xor 23 = 118 → "v"
+;   's' (115) → 115 xor 23 = 100 → "d"
+;   's'       → "d"
+;   'w' (119) → 119 xor 23 = 96  → "`"
+;   'o' (111) → 111 xor 23 = 120 → "x"
+;   'r' (114) → 114 xor 23 = 101 → "e"
+;   'd' (100) → 100 xor 23 = 115 → "s"
+;   '0' (48)  → 48 xor 23 = 39   → "'" 
+;   '0'       → "'" 
+; 結果: "Gvdd`xes''"
+;
+; [管理者パスワード "rootpass"]
+;   'r' (114) → 114 xor 23 = 101 → "e"
+;   'o' (111) → 111 xor 23 = 120 → "x"
+;   'o'       → "x"
+;   't' (116) → 116 xor 23 = 99  → "c"
+;   'p' (112) → 112 xor 23 = 103 → "g"
+;   'a' (97)  → 97 xor 23 = 118  → "v"
+;   's' (115) → 115 xor 23 = 100 → "d"
+;   's'       → "d"
+; 結果: "exxcgvdd"
+;
+; フラグ embed_method = 1 とすると、マクロ内埋め込み方式を利用
+embed_method = 1  ; 1 = 埋め込み方式, 0 = 外部ファイルから読み込み方式
+
+if embed_method == 1 then
+    ; ユーザパスワードの復号
+    obf_str = "Gvdd`xes''"
+    call decrypt
+    user_password = dec_str   ; 復号結果は "Password00"
+    
+    ; 管理者パスワードの復号
+    obf_str = "exxcgvdd"
+    call decrypt
+    admin_password = dec_str  ; 復号結果は "rootpass"
+else
+;==============================================
+; 【方法2】 外部テキストファイルから暗号化文字列を読み込み復号する例
+;==============================================
+    ; 例として、ユーザパスワードは "userpass.txt"、管理者パスワードは "adminpass.txt" に記述
+    fileopen "userpass.txt", 0
+    filereadln obf_str
+    fileclose
+    call decrypt
+    user_password = dec_str
+    
+    fileopen "adminpass.txt", 0
+    filereadln obf_str
+    fileclose
+    call decrypt
+    admin_password = dec_str
+endif
+
+;==============================================
+; SSH接続設定
+;==============================================
+hostname = 'your.server.com'  ; 接続先ホスト名または IP アドレスに変更
+port = '22'
+username = 'unyou00'
+
+;==============================================
+; SSH接続・ログイン処理
+;==============================================
+connect hostname + ':' + port
+
+wait 'login:' 10
+sendln username
+
+wait 'Password:' 10
+sendln user_password
+
+; ユーザプロンプトの待機 (例: "$ "、環境に合わせ調整)
+wait '$ ' 10
+
+; セッションログの開始（実行日時付きファイル名を生成）
+gettime
+sprintf(logfilename, 'log_%04d%02d%02d_%02d%02d%02d.txt', year, month, day, hour, min, sec)
+logopen logfilename
+
+; 管理者権限への昇格
+sendln 'su -'
+wait 'Password:' 10
+sendln admin_password
+
+; 管理者プロンプトの待機 (例: "# ", 必要に応じて調整)
+wait '# ' 10
+
+; ここから管理者として実施したいコマンドを記述
+; 例:
+; sendln 'ls -la /root'
+; wait '# ' 10
+
+; 終了処理
+logclose
+disconnect
